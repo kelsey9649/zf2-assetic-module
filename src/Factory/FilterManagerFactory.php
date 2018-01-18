@@ -1,11 +1,16 @@
 <?php
 
-namespace AsseticBundle;
+namespace AsseticBundle\Factory;
 
+use AsseticBundle\FilterManager;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
+/**
+ * Class FilterManagerFactory
+ * @package AsseticBundle\Factory
+ */
 class FilterManagerFactory implements FactoryInterface
 {
     /**
@@ -29,6 +34,6 @@ class FilterManagerFactory implements FactoryInterface
      */
     public function createService(ServiceLocatorInterface $locator)
     {
-        return $this($locator, 'FilterManager');
+        return $this($locator, FilterManager::class);
     }
 }

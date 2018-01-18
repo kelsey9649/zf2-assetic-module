@@ -1,24 +1,31 @@
 <?php
 
-namespace AsseticBundle;
+namespace AsseticBundle\Factory;
 
 use Assetic\AssetWriter;
+use AsseticBundle\Configuration;
 use Interop\Container\ContainerInterface;
 use Zend\ServiceManager\FactoryInterface;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
+/**
+ * Class WriterFactory
+ * @package AsseticBundle\Factory
+ */
 class WriterFactory implements FactoryInterface
 {
     /**
      * @param ContainerInterface $locator
      * @param string $requestedName
-     * @param array $options, optional
+     * @param array $options , optional
      *
-     * @return \AsseticBundle\FilterManager
+     * @return AssetWriter
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
      */
     public function __invoke(ContainerInterface $locator, $requestedName, array $options = null)
     {
-        $asseticConfig = $locator->get('AsseticConfiguration');
+        $asseticConfig = $locator->get(Configuration::class);
         $asseticWriter = new AssetWriter($asseticConfig->getWebPath());
 
         return $asseticWriter;
@@ -27,10 +34,12 @@ class WriterFactory implements FactoryInterface
     /**
      * @param ServiceLocatorInterface $locator
      *
-     * @return \Assetic\AssetWriter;
+     * @return AssetWriter
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
      */
     public function createService(ServiceLocatorInterface $locator)
     {
-        return $this($locator, 'AssetWriter');
+        return $this($locator, AssetWriter::class);
     }
 }

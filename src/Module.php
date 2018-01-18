@@ -3,12 +3,14 @@
 namespace AsseticBundle;
 
 use Zend\EventManager\EventInterface;
-use Zend\ModuleManager\Feature\AutoloaderProviderInterface;
 use Zend\ModuleManager\Feature\BootstrapListenerInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
 
+/**
+ * Class Module
+ * @package AsseticBundle
+ */
 class Module implements
-        AutoloaderProviderInterface,
         ConfigProviderInterface,
         BootstrapListenerInterface
 {
@@ -17,7 +19,9 @@ class Module implements
      *
      * @param \Zend\EventManager\EventInterface $e
      *
-     * @return array
+     * @return void
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
      */
     public function onBootstrap(EventInterface $e)
     {
@@ -37,22 +41,6 @@ class Module implements
      */
     public function getConfig()
     {
-        return require __DIR__ . '/configs/module.config.php';
-    }
-
-    /**
-     * Return an array for passing to Zend\Loader\AutoloaderFactory.
-     *
-     * @return array
-     */
-    public function getAutoloaderConfig()
-    {
-        return [
-            'Zend\Loader\StandardAutoloader' => [
-                'namespaces' => [
-                    __NAMESPACE__ => __DIR__ . '/src/' . __NAMESPACE__ . '/'
-                ],
-            ],
-        ];
+        return require __DIR__ . '/../configs/module.config.php';
     }
 }

@@ -44,8 +44,8 @@
     "check-code": "php-cs-fixer fix --verbose --diff --dry-run"
   },
   "autoload": {
-    "psr-0": {
-      "AsseticBundle": "src"
+    "psr-4": {
+      "AsseticBundle\\": "src/"
     },
     "classmap": ["Module.php"]
   }

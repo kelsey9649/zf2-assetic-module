@@ -4,6 +4,10 @@ namespace AsseticBundle;
 
 use Zend\Stdlib;
 
+/**
+ * Class Configuration
+ * @package AsseticBundle
+ */
 class Configuration
 {
     /**
@@ -21,7 +25,7 @@ class Configuration
     protected $combine = true;
 
     /**
-     * Should build assets on request.
+     * Flag indicating whether or not to build assets on request.
      *
      * @var bool
      */
@@ -77,7 +81,7 @@ class Configuration
     protected $basePath;
 
     /**
-     * Asset will be save on disk, only when it's modification time was changed
+     * Asset will be saved on disk, only when it's modification time was changed
      *
      * @var bool
      */

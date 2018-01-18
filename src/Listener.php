@@ -6,12 +6,15 @@ use Zend\EventManager\EventManagerInterface;
 use Zend\EventManager\ListenerAggregateInterface;
 use Zend\Http\PhpEnvironment\Response;
 use Zend\Mvc\MvcEvent;
-use Zend\Stdlib\CallbackHandler;
 
+/**
+ * Class Listener
+ * @package AsseticBundle
+ */
 class Listener implements ListenerAggregateInterface
 {
     /**
-     * @var CallbackHandler[]
+     * @var callable[]
      */
     protected $listeners = [];
 
@@ -26,8 +29,23 @@ class Listener implements ListenerAggregateInterface
      */
     public function attach(EventManagerInterface $events, $priority = 32)
     {
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_DISPATCH, [$this, 'renderAssets'], $priority);
-        $this->listeners[] = $events->attach(MvcEvent::EVENT_DISPATCH_ERROR, [$this, 'renderAssets'], $priority);
+        $this->listeners[] = $events->attach(
+            MvcEvent::EVENT_DISPATCH,
+            [
+                $this,
+                'renderAssets'
+            ],
+            $priority
+        );
+
+        $this->listeners[] = $events->attach(
+            MvcEvent::EVENT_DISPATCH_ERROR,
+            [
+                $this,
+                'renderAssets'
+            ],
+            $priority
+        );
     }
 
     /**
@@ -38,19 +56,27 @@ class Listener implements ListenerAggregateInterface
     public function detach(EventManagerInterface $events)
     {
         foreach ($this->listeners as $index => $listener) {
-            if ($events->detach($listener)) {
-                unset($this->listeners[$index]);
-            }
+            $events->detach($listener);
+            unset($this->listeners[$index]);
         }
     }
 
+    /**
+     * @param MvcEvent $e
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
+     */
     public function renderAssets(MvcEvent $e)
     {
-        $sm     = $e->getApplication()->getServiceManager();
+        $sm = $e->getApplication()->getServiceManager();
+
         /** @var Configuration $config */
-        $config = $sm->get('AsseticConfiguration');
+        $config = $sm->get(Configuration::class);
+
         if ($e->getName() === MvcEvent::EVENT_DISPATCH_ERROR) {
+
             $error = $e->getError();
+
             if ($error && !in_array($error, $config->getAcceptableErrors())) {
                 // break if not an acceptable error
                 return;
@@ -58,16 +84,18 @@ class Listener implements ListenerAggregateInterface
         }
 
         $response = $e->getResponse();
+
         if (!$response) {
             $response = new Response();
             $e->setResponse($response);
         }
 
-        /** @var $asseticService \AsseticBundle\Service */
-        $asseticService = $sm->get('AsseticService');
+        /** @var $asseticService Service */
+        $asseticService = $sm->get(Service::class);
 
         // setup service if a matched route exist
         $router = $e->getRouteMatch();
+
         if ($router) {
             $asseticService->setRouteName($router->getMatchedRouteName());
             $asseticService->setControllerName($router->getParam('controller'));

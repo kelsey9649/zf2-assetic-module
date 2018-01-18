@@ -2,12 +2,12 @@
 
 namespace AsseticBundle\View\Helper;
 
-use Zend\View\Helper\Placeholder\Container,
-    Zend\ServiceManager\ServiceLocatorInterface;
-use AsseticBundle\ServiceFactory,
-    AsseticBundle\Exception,
-    Assetic\Asset\AssetInterface,
-    Assetic\Asset\AssetCollection;
+use Assetic\Asset\AssetCollection;
+use Assetic\Asset\AssetInterface;
+use AsseticBundle\Exception;
+use AsseticBundle\Factory\ServiceFactory;
+use Zend\ServiceManager\ServiceLocatorInterface;
+use Zend\View\Helper\Placeholder\Container;
 
 /**
  * Class Asset
@@ -18,14 +18,22 @@ class Asset extends Container\AbstractStandalone
 {
     /** @var \AsseticBundle\Service|null */
     protected $service = null;
+
+    /** @var null|string */
     protected $baseUrl = '';
+
+    /** @var null|string */
     protected $basePath = '';
 
     /**
      * @param ServiceLocatorInterface $serviceLocator
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
      */
     public function __construct(ServiceLocatorInterface $serviceLocator)
     {
+        parent::__construct();
+
         $serviceFactory = new ServiceFactory();
         $this->service = $serviceFactory->createService($serviceLocator);
         $this->service->build();
@@ -44,14 +52,18 @@ class Asset extends Container\AbstractStandalone
      */
     public function __invoke($collectionName, array $options = [])
     {
-        if (!$this->service->getAssetManager()->has($collectionName)) {
+        $assetManager = $this->service->getAssetManager();
+
+        if (!$assetManager->has($collectionName)) {
             throw new Exception\InvalidArgumentException(
-                'Collection "' . $collectionName . '" does not exist.'
+                sprintf(
+                    'Collection "%s" does not exist.',
+                    $collectionName
+                )
             );
         }
 
-        $asset = $this->service->getAssetManager()->get($collectionName);
-
+        $asset = $assetManager->get($collectionName);
         return $this->setupAsset($asset, $options);
     }
 
@@ -63,23 +75,24 @@ class Asset extends Container\AbstractStandalone
      */
     protected function setupAsset(AssetInterface $asset, array $options = [])
     {
-        $ret = '';
+        $configuration = $this->service->getConfiguration();
 
-        if (
-            $this->service->getConfiguration()->isDebug()
-            && !$this->service->getConfiguration()->isCombine()
+        if ($configuration->isDebug()
+            && !$configuration->isCombine()
             && $asset instanceof AssetCollection
         ) {
             // Move assets as single instance not as a collection
+            $response = '';
+
             foreach ($asset as $value) {
                 /** @var AssetCollection $value */
-                $ret .= $this->helper($value, $options) . PHP_EOL;
+                $response .= $this->helper($value, $options) . PHP_EOL;
             }
-        } else {
-            $ret .= $this->helper($asset, $options) . PHP_EOL;
+
+            return $response;
         }
 
-        return $ret;
+        return $this->helper($asset, $options) . PHP_EOL;
     }
 
     /**
@@ -90,28 +103,28 @@ class Asset extends Container\AbstractStandalone
      */
     protected function helper(AssetInterface $asset, array $options = [])
     {
-        $path = $this->baseUrl . $this->basePath .  $asset->getTargetPath();
+        $filePath = $this->baseUrl . $this->basePath . $asset->getTargetPath();
 
-        $extension = pathinfo($path, PATHINFO_EXTENSION);
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
         $extension = strtolower($extension);
 
         if (isset($options['addFileMTime']) && $options['addFileMTime']) {
-            $path .= '?' . $asset->getLastModified();
+            $filePath .= '?' . $asset->getLastModified();
         }
 
         switch ($extension) {
             case 'js':
-                return $this->getScriptTag($path, $options);
+                return $this->getScriptTag($filePath, $options);
 
             case 'css':
-                return $this->getStylesheetTag($path, $options);
+                return $this->getStylesheetTag($filePath, $options);
         }
 
         return '';
     }
 
     /**
-     * @param $path
+     * @param string $path
      * @param array $options
      *
      * @return string
@@ -120,11 +133,15 @@ class Asset extends Container\AbstractStandalone
     {
         $type = (isset($options['type']) && !empty($options['type'])) ? $options['type'] : 'text/javascript';
 
-        return '<script type="' . $this->escape($type) . '" src="' . $this->escape($path) . '"></script>';
+        return \sprintf(
+            '<script type="%s" src="%s"></script>',
+            $this->escape($type),
+            $this->escape($path)
+        );
     }
 
     /**
-     * @param $path
+     * @param string $path
      * @param array $options
      *
      * @return string
@@ -135,9 +152,12 @@ class Asset extends Container\AbstractStandalone
         $type = (isset($options['type']) && !empty($options['type'])) ? $options['type'] : 'text/css';
         $rel = (isset($options['rel']) && !empty($options['rel'])) ? $options['rel'] : 'stylesheet';
 
-        return '<link href="' . $this->escape($path)
-            . '" media="' . $this->escape($media)
-            . '" rel="' . $this->escape($rel)
-            . '" type="' . $this->escape($type) . '">';
+        return \sprintf(
+            '<link href="%s" media="%s" rel="%s" type="%s">',
+            $this->escape($path),
+            $this->escape($media),
+            $this->escape($rel),
+            $this->escape($type)
+        );
     }
 }

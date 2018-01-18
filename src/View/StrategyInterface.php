@@ -2,13 +2,16 @@
 
 namespace AsseticBundle\View;
 
-use AsseticBundle\Service,
-    Zend\View\Renderer\RendererInterface as Renderer,
+use Zend\View\Renderer\RendererInterface,
     Assetic\Asset\AssetInterface;
 
+/**
+ * Interface StrategyInterface
+ * @package AsseticBundle\View
+ */
 interface StrategyInterface
 {
-    public function setRenderer(Renderer $renderer);
+    public function setRenderer(RendererInterface $renderer);
     public function getRenderer();
 
     public function setBaseUrl($baseUrl);

@@ -5,6 +5,7 @@ namespace AsseticBundle;
 use Zend\EventManager\EventInterface;
 use Zend\ModuleManager\Feature\BootstrapListenerInterface;
 use Zend\ModuleManager\Feature\ConfigProviderInterface;
+use Zend\Mvc\MvcEvent;
 
 /**
  * Class Module
@@ -17,7 +18,7 @@ class Module implements
     /**
      * Listen to the bootstrap event
      *
-     * @param \Zend\EventManager\EventInterface $e
+     * @param \Zend\EventManager\EventInterface|MvcEvent $e
      *
      * @return void
      * @throws \Interop\Container\Exception\ContainerException
@@ -25,12 +26,13 @@ class Module implements
      */
     public function onBootstrap(EventInterface $e)
     {
-        /** @var $e \Zend\Mvc\MvcEvent */
         // Only attach the Listener if the request came in through http(s)
         if (PHP_SAPI !== 'cli') {
-            $app = $e->getApplication();
 
-            $app->getServiceManager()->get('AsseticBundle\Listener')->attach($app->getEventManager());
+            $app = $e->getApplication();
+            $services = $app->getServiceManager();
+            $listener = $services->get(Listener::class);
+            $listener->attach($app->getEventManager());
         }
     }
 

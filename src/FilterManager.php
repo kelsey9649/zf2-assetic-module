@@ -6,6 +6,10 @@ use Assetic\Filter\FilterInterface;
 use Assetic\FilterManager as AsseticFilterManager;
 use Zend\ServiceManager\ServiceLocatorInterface;
 
+/**
+ * Class FilterManager
+ * @package AsseticBundle
+ */
 class FilterManager extends AsseticFilterManager
 {
     /**
@@ -34,9 +38,9 @@ class FilterManager extends AsseticFilterManager
     /**
      * @param $alias
      *
-     * @throws \InvalidArgumentException    When cant retrieve filter from service manager.
-     *
      * @return mixed
+     * @throws \Interop\Container\Exception\ContainerException
+     * @throws \Interop\Container\Exception\NotFoundException
      */
     public function get($alias)
     {
@@ -44,17 +48,29 @@ class FilterManager extends AsseticFilterManager
             return parent::get($alias);
         }
 
-        $service = $this->serviceLocator;
-        if (!$service->has($alias)) {
-            throw new \InvalidArgumentException(sprintf('There is no "%s" filter in ZF2 service manager.', $alias));
+        $services = $this->serviceLocator;
+
+        if (!$services->has($alias)) {
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'A "%s" filter was not found in the container.',
+                    $alias
+                )
+            );
         }
 
-        $filter = $service->get($alias);
+        $filter = $services->get($alias);
+
         if (!($filter instanceof FilterInterface)) {
             $givenType = is_object($filter) ? get_class($filter) : gettype($filter);
-            $message = 'Retrieved filter "%s" is not instanceof "Assetic\Filter\FilterInterface", but type was given %s';
-            $message = sprintf($message, $alias, $givenType);
-            throw new \InvalidArgumentException($message);
+            throw new \InvalidArgumentException(
+                sprintf(
+                    'Retrieved filter "%s" is not instanceof "%s", but "%s" was given',
+                    $alias,
+                    FilterInterface::class,
+                    $givenType
+                )
+            );
         }
 
         $this->set($alias, $filter);

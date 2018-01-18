@@ -1,30 +1,37 @@
 <?php
 
+use AsseticBundle\Cli\ApplicationFactory;
+use AsseticBundle\Factory;
+use AsseticBundle\View\NoneStrategy;
+use AsseticBundle\View\ViewHelperStrategy;
 use Zend\Mvc\Application;
+use Zend\ServiceManager\Factory\InvokableFactory;
+use Zend\View\Renderer\FeedRenderer;
+use Zend\View\Renderer\JsonRenderer;
+use Zend\View\Renderer\PhpRenderer;
 
 return [
     'service_manager' => [
         'aliases' => [
-            'AsseticConfiguration'  => 'AsseticBundle\Configuration',
-            'AsseticService'        => 'AsseticBundle\Service',
-            'Assetic\FilterManager' => 'AsseticBundle\FilterManager',
+            'AsseticConfiguration'  => \AsseticBundle\Configuration::class,
+            'AsseticService'        => \AsseticBundle\Service::class,
+            'Assetic\FilterManager' => \AsseticBundle\FilterManager::class,
         ],
         'factories' => [
-            'AsseticBundle\Service'       => 'AsseticBundle\ServiceFactory',
-            'Assetic\AssetWriter'         => 'AsseticBundle\WriterFactory',
-            'AsseticBundle\FilterManager' => 'AsseticBundle\FilterManagerFactory',
-            'Assetic\AssetManager'        => 'Zend\ServiceManager\Factory\InvokableFactory',
-            'AsseticBundle\Listener'      => 'Zend\ServiceManager\Factory\InvokableFactory',
-            'AsseticBundle\Cli'           => 'AsseticBundle\Cli\ApplicationFactory',
-            'AsseticBundle\Configuration' => 'AsseticBundle\Factory\ConfigurationFactory',
+            \AsseticBundle\Service::class       => Factory\ServiceFactory::class,
+            \Assetic\AssetWriter::class         => Factory\WriterFactory::class,
+            \AsseticBundle\FilterManager::class => Factory\FilterManagerFactory::class,
+            \Assetic\AssetManager::class        => InvokableFactory::class,
+            \AsseticBundle\Listener::class      => InvokableFactory::class,
+            'AsseticBundle\Cli'                 => ApplicationFactory::class,
+            \AsseticBundle\Configuration::class => Factory\ConfigurationFactory::class,
         ],
     ],
-
     'assetic_configuration' => [
         'rendererToStrategy' => [
-            'Zend\View\Renderer\PhpRenderer'  => 'AsseticBundle\View\ViewHelperStrategy',
-            'Zend\View\Renderer\FeedRenderer' => 'AsseticBundle\View\NoneStrategy',
-            'Zend\View\Renderer\JsonRenderer' => 'AsseticBundle\View\NoneStrategy',
+            PhpRenderer::class  => ViewHelperStrategy::class,
+            FeedRenderer::class => NoneStrategy::class,
+            JsonRenderer::class => NoneStrategy::class,
         ],
         'acceptableErrors' => [
             Application::ERROR_CONTROLLER_NOT_FOUND,

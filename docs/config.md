@@ -56,18 +56,18 @@ options:
 
 | Name   | Type    | Required | Description |
 |--------|---------|----------|-------------|
-| name   | `string`| yes      | Filter name must be valid class name i.e `Assetic\Filter\CssRewriteFilter`. By valid, I mean it should be visible through autoloader.
-| option | `array` | no       | Some filters are require options in constructor, so by providing them here, you can specialize the filter instance.
+| name   | `string`| yes      | Filter name must be valid class name i.e `Assetic\Filter\CssRewriteFilter`. Validity is determined  by whether it is visible through the autoloader.
+| option | `array` | no       | Some filters require that options be provided in the constructor. Providing them here will inject them into the constructor, allowing you to configure the filter instance.
 
 ##### Options section
 
-This section belongs to `collection` section and is composed from following 
-options:
+This section belongs to the `collection` section and is composed of the 
+following options:
 
 | Name       | Type      | Required | Description |
 |------------|-----------|----------|-------------|
-| output     | `string`  | no       | You can give your own output file name.
-| move_raw   | `boolean` | no       | This option is very useful to move images, because we want them raw, without any modification.
+| output     | `string`  | no       | Output file name of the collection.
+| move_raw   | `boolean` | no       | Moves files without any modification. This option is very useful to move images.
 | targetPath | `string`  | no       | Allow to sort assets in specific places [#127](https://github.com/widmogrod/zf2-assetic-module/pull/127#issuecomment-78114102)
 
 ### Controllers section

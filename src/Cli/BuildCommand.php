@@ -7,6 +7,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Class BuildCommand
+ * @package AsseticBundle\Cli
+ */
 class BuildCommand extends Command
 {
     /**
@@ -40,7 +44,10 @@ class BuildCommand extends Command
     {
         $config = $this->assetic->getConfiguration();
         $config->setBuildOnRequest(true);
+
         $this->assetic->build();
-        $this->assetic->getAssetWriter()->writeManagerAssets($this->assetic->getAssetManager());
+        $this->assetic
+            ->getAssetWriter()
+            ->writeManagerAssets($this->assetic->getAssetManager());
     }
 }

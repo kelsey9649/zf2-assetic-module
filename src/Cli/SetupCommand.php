@@ -7,6 +7,10 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+/**
+ * Class SetupCommand
+ * @package AsseticBundle\Cli
+ */
 class SetupCommand extends Command
 {
     /**
@@ -25,7 +29,9 @@ class SetupCommand extends Command
     {
         parent::__construct('setup');
         $this->assetic = $assetic;
-        $this->setDescription('Create cache and assets directories with valid permissions.');
+        $this->setDescription(
+            'Create cache and assets directories with valid permissions.'
+        );
     }
 
     /**

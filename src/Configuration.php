@@ -8,8 +8,16 @@ use Zend\Stdlib;
  * Class Configuration
  * @package AsseticBundle
  */
-class Configuration
+class Configuration extends Stdlib\AbstractOptions
 {
+    /**
+     * Permits config arrays provided to the options to contain keys that are
+     * not contained within the config. They are just ignored
+     *
+     * @var bool
+     */
+    protected $__strictMode__ = false;
+
     /**
      * Debug option that is passed to Assetic.
      *
@@ -144,48 +152,73 @@ class Configuration
      */
     protected $dirPermission = null;
 
+    /**
+     * Configuration constructor.
+     * @param array|\Traversable|null $config
+     */
     public function __construct($config = null)
     {
         if (null !== $config) {
             if (is_array($config)) {
-                $this->processArray($config);
+                parent::__construct($config);
             } elseif ($config instanceof \Traversable) {
-                $this->processArray(Stdlib\ArrayUtils::iteratorToArray($config));
+                parent::__construct(Stdlib\ArrayUtils::iteratorToArray($config));
             } else {
                 throw new Exception\InvalidArgumentException(
-                    'Parameter to \\AsseticBundle\\Configuration\'s '
-                    . 'constructor must be an array or implement the '
-                    . '\\Traversable interface'
+                    sprintf(
+                        'Parameter to %s\'s constructor must be an array or implement the %s interface',
+                        Configuration::class,
+                        \Traversable::class
+                    )
                 );
             }
         }
     }
 
+    /**
+     * @return bool
+     */
     public function isDebug()
     {
         return $this->debug;
     }
 
+    /**
+     * @param bool $flag
+     */
     public function setDebug($flag)
     {
         $this->debug = (bool) $flag;
     }
 
+    /**
+     * @return bool
+     */
     public function isCombine()
     {
         return $this->combine;
     }
 
+    /**
+     * @param bool $flag
+     */
     public function setCombine($flag)
     {
         $this->combine = (bool) $flag;
     }
 
+    /**
+     * @param string $path
+     */
     public function setWebPath($path)
     {
         $this->webPath = $path;
     }
 
+    /**
+     * @param string|null $file
+     * @return string
+     */
     public function getWebPath($file = null)
     {
         if (null === $this->webPath) {
@@ -199,26 +232,50 @@ class Configuration
         return $this->webPath;
     }
 
+    /**
+     * @param string $path
+     */
     public function setCachePath($path)
     {
         $this->cachePath = $path;
     }
 
+    /**
+     * @return string
+     */
     public function getCachePath()
     {
         return $this->cachePath;
     }
 
+    /**
+     * @param bool $cacheEnabled
+     */
     public function setCacheEnabled($cacheEnabled)
     {
         $this->cacheEnabled = (bool) $cacheEnabled;
     }
 
+    /**
+     * @deprecated
+     * @return bool
+     */
     public function getCacheEnabled()
     {
         return $this->cacheEnabled;
     }
 
+    /**
+     * @return bool
+     */
+    public function isCacheEnabled()
+    {
+        return $this->cacheEnabled;
+    }
+
+    /**
+     * @param array $default
+     */
     public function setDefault(array $default)
     {
         if (!isset($default['assets'])) {
@@ -232,21 +289,35 @@ class Configuration
         $this->default = $default;
     }
 
+    /**
+     * @return array
+     */
     public function getDefault()
     {
         return $this->default;
     }
 
+    /**
+     * @param array $routes
+     */
     public function setRoutes(array $routes)
     {
         $this->routes = $routes;
     }
 
+    /**
+     * @return array
+     */
     public function getRoutes()
     {
         return $this->routes;
     }
 
+    /**
+     * @param string $name
+     * @param null $default
+     * @return array|null
+     */
     public function getRoute($name, $default = null)
     {
         $assets = [];
@@ -264,16 +335,27 @@ class Configuration
         return $routeMatched ? $assets : $default;
     }
 
+    /**
+     * @param array $controllers
+     */
     public function setControllers(array $controllers)
     {
         $this->controllers = $controllers;
     }
 
+    /**
+     * @return array
+     */
     public function getControllers()
     {
         return $this->controllers;
     }
 
+    /**
+     * @param string $name
+     * @param null $default
+     * @return array|null
+     */
     public function getController($name, $default = null)
     {
         return array_key_exists($name, $this->controllers)
@@ -281,6 +363,9 @@ class Configuration
             : $default;
     }
 
+    /**
+     * @param array $modules
+     */
     public function setModules(array $modules)
     {
         $this->modules = [];
@@ -289,17 +374,29 @@ class Configuration
         }
     }
 
+    /**
+     * @param $name
+     * @param array $options
+     */
     public function addModule($name, array $options)
     {
         $name = strtolower($name);
         $this->modules[$name] = $options;
     }
 
+    /**
+     * @return array
+     */
     public function getModules()
     {
         return $this->modules;
     }
 
+    /**
+     * @param string $name
+     * @param null $default
+     * @return array|null
+     */
     public function getModule($name, $default = null)
     {
         $name = strtolower($name);
@@ -309,11 +406,17 @@ class Configuration
             : $default;
     }
 
+    /**
+     * @return bool
+     */
     public function detectBaseUrl()
     {
         return (null === $this->baseUrl || 'auto' === $this->baseUrl);
     }
 
+    /**
+     * @param string $baseUrl
+     */
     public function setBaseUrl($baseUrl)
     {
         if (null !== $baseUrl && 'auto' !== $baseUrl) {
@@ -322,6 +425,9 @@ class Configuration
         $this->baseUrl = $baseUrl;
     }
 
+    /**
+     * @return null|string
+     */
     public function getBaseUrl()
     {
         return $this->baseUrl;
@@ -347,40 +453,28 @@ class Configuration
         return $this->basePath;
     }
 
-    protected function processArray($config)
-    {
-        foreach ($config as $key => $value) {
-            $setter = $this->assembleSetterNameFromConfigKey($key);
-            $this->{$setter}($value);
-        }
-    }
-
-    protected function assembleSetterNameFromConfigKey($key)
-    {
-        $parts = explode('_', $key);
-        $parts = array_map('ucfirst', $parts);
-        $setter = 'set' . implode('', $parts);
-        if (!method_exists($this, $setter)) {
-            throw new Exception\BadMethodCallException(
-                'The configuration key "' . $key . '" does not '
-                . 'have a matching ' . $setter . ' setter method '
-                . 'which must be defined'
-            );
-        }
-
-        return $setter;
-    }
-
+    /**
+     * @param array $strategyForRenderer
+     */
     public function setRendererToStrategy(array $strategyForRenderer)
     {
         $this->rendererToStrategy = $strategyForRenderer;
     }
 
+    /**
+     * @param string $rendererClass
+     * @param string $strategyClass
+     */
     public function addRendererToStrategy($rendererClass, $strategyClass)
     {
         $this->rendererToStrategy[$rendererClass] = $strategyClass;
     }
 
+    /**
+     * @param string $rendererName
+     * @param null $default
+     * @return mixed|null
+     */
     public function getStrategyNameForRenderer($rendererName, $default = null)
     {
         return array_key_exists($rendererName, $this->rendererToStrategy)
@@ -388,11 +482,17 @@ class Configuration
             : $default;
     }
 
+    /**
+     * @param array $acceptableErrors
+     */
     public function setAcceptableErrors(array $acceptableErrors)
     {
         $this->acceptableErrors = $acceptableErrors;
     }
 
+    /**
+     * @return array
+     */
     public function getAcceptableErrors()
     {
         return $this->acceptableErrors;
